@@ -21,23 +21,27 @@ export default {
     // so that components rendered by router-view can resolve named slots
     // 注意这里，使用的父级的渲染函数
     const h = parent.$createElement
-    // 获取路由name，当前路由
+    // 获取路由name，当前路由，name通常为default，具名路由有所差异
     const name = props.name
     const route = parent.$route
-    // 获取存在父级的缓存
+    // 获取存在父级的缓存，如果不存在就赋值，cache存储在父级的实例上
     const cache = parent._routerViewCache || (parent._routerViewCache = {})
 
     // determine current view depth, also check to see if the tree
     // has been toggled inactive but kept-alive.
+    // 检查router-view的深度，有多少层
     let depth = 0
     let inactive = false
     // 计算深度和标记inactive，就是意思这个界面没有渲染，但是有keepAlive，就打个标记，
-    // 然后后面的时候从缓存中取出来，直接渲染上
+    // 递归计算深度，有多少层routerView
     while (parent && parent._routerRoot !== parent) {
+      // parent.$vnode.data
       const vnodeData = parent.$vnode ? parent.$vnode.data : {}
+      // 上面赋值的，只会在router-view上存在，如果你在自己data上声明这个参数，理论上也可以
       if (vnodeData.routerView) {
         depth++
       }
+      // 这部分数据都是vue实例上的，参数均在vue中处理的
       if (vnodeData.keepAlive && parent._directInactive && parent._inactive) {
         inactive = true
       }
@@ -46,7 +50,7 @@ export default {
     data.routerViewDepth = depth
 
     // render previous view if the tree is inactive and kept-alive
-    // 有缓存但是未渲染的页面，从缓存区中拿到原来的实例进行渲染
+    // 有缓存但是未激活，从缓存区中拿到原来的实例进行渲染
     if (inactive) {
       const cachedData = cache[name]
       // 拿出缓存

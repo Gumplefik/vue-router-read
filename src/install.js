@@ -2,11 +2,11 @@ import View from './components/view'
 import Link from './components/link'
 
 
+
 export let _Vue
 
 // vue的注册函数
 export function install (Vue) {
-  debugger
   // 防止重复注册
   if (install.installed && _Vue === Vue) return
   install.installed = true
@@ -28,15 +28,19 @@ export function install (Vue) {
   // 注册mixin
   Vue.mixin({
     beforeCreate () {
+      // $options就是new Vue时传的参数，router是实例化后的VueRouter
       if (isDef(this.$options.router)) {
+
+        // 保存Vue根实例
         this._routerRoot = this
+        // 保存router的引用
         this._router = this.$options.router
         // 初始化路由
         this._router.init(this)
-        // 响应式方法
+        // 响应式方法，使route响应化
         Vue.util.defineReactive(this, '_route', this._router.history.current)
       } else {
-        // 保存路由root
+        // 保存Vue根实例
         this._routerRoot = (this.$parent && this.$parent._routerRoot) || this
       }
       registerInstance(this, this)

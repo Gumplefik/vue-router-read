@@ -56,15 +56,20 @@ export function createMatcher (
     currentRoute?: Route,
     redirectedFrom?: Location
   ): Route {
+    // 解析location
     const location = normalizeLocation(raw, currentRoute, false, router)
     const { name } = location
 
+    // 有name的单独处理, 只有raw是Location类型，具有name属性才能触发
     if (name) {
+      // 从name map中获取record，record属于RouteRecord类型
       const record = nameMap[name]
       if (process.env.NODE_ENV !== 'production') {
         warn(record, `Route with name '${name}' does not exist`)
       }
+      // 没匹配到就创建一条新的路由记录返回
       if (!record) return _createRoute(null, location)
+      // 获取要匹配的变量的名称，用于下面复制保留参数
       const paramNames = record.regex.keys
         .filter(key => !key.optional)
         .map(key => key.name)
@@ -75,13 +80,16 @@ export function createMatcher (
 
       if (currentRoute && typeof currentRoute.params === 'object') {
         for (const key in currentRoute.params) {
+          // 从旧的路由上保存需要的参数到新的路由的params上
           if (!(key in location.params) && paramNames.indexOf(key) > -1) {
             location.params[key] = currentRoute.params[key]
           }
         }
       }
 
+      // 填充params
       location.path = fillParams(record.path, location.params, `named route "${name}"`)
+      // 创建一条新的路由，返回
       return _createRoute(record, location, redirectedFrom)
     } else if (location.path) {
       location.params = {}
@@ -90,6 +98,7 @@ export function createMatcher (
         const path = pathList[i]
         const record = pathMap[path]
         if (matchRoute(record.regex, location.path, location.params)) {
+          // 创建路由记录
           return _createRoute(record, location, redirectedFrom)
         }
       }

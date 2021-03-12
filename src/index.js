@@ -100,8 +100,9 @@ export default class VueRouter {
     return this.history && this.history.current
   }
 
-  // 初始化的检查， app就是vue的实例
+  // 初始化的检查， app就是vue root的实例,只有new Vue才会触发
   init (app: any /* Vue component instance */) {
+
     process.env.NODE_ENV !== 'production' &&
       assert(
         install.installed,
@@ -109,35 +110,41 @@ export default class VueRouter {
           `before creating root instance.`
       )
 
+    // 保存Vue实例
     this.apps.push(app)
 
     // set up app destroyed handler
     // https://github.com/vuejs/vue-router/issues/2639
     // 避免内存泄漏，路由销毁的时候就移除对应的vue实例
+    // 初始化销毁的钩子
     app.$once('hook:destroyed', () => {
       // clean out app from this.apps array once destroyed
       const index = this.apps.indexOf(app)
       if (index > -1) this.apps.splice(index, 1)
       // ensure we still have a main app or null if no apps
       // we do not release the router so it can be reused
+      // 如果是根实例就更新引用
       if (this.app === app) this.app = this.apps[0] || null
 
-      // 无实例的时候，清除所有监听折
+      // 无实例的时候，清除所有监听者
       if (!this.app) this.history.teardown()
     })
 
     // main app previously initialized
     // return as we don't need to set up new history listener
+    // 已经初始化根实例就退出
     if (this.app) {
       return
     }
 
+    // 保存根实例引用
     this.app = app
 
     const history = this.history
 
-    // 以下两种模式初始化以下过渡的特效和路由错误，后面回顾
+    // 以下两种模式初始化第一次的跳转
     if (history instanceof HTML5History || history instanceof HashHistory) {
+      // 初始化滚动函数，制定滚动到页面的哪个部分
       const handleInitialScroll = routeOrError => {
         const from = history.current
         const expectScroll = this.options.scrollBehavior
@@ -147,10 +154,12 @@ export default class VueRouter {
           handleScroll(this, routeOrError, from, false)
         }
       }
+      // 无论跳转成功还是失败都睡执行初始化滚动
       const setupListeners = routeOrError => {
         history.setupListeners()
         handleInitialScroll(routeOrError)
       }
+      // 获取当前路由地址，跳转过去，后面两个分别为完成时和中断时执行的函数
       history.transitionTo(
         history.getCurrentLocation(),
         setupListeners,
@@ -158,7 +167,7 @@ export default class VueRouter {
       )
     }
 
-    // 添加一个监听器
+    // 注册history的回调函数，每次路由更新的时候为每个vue实例更新当前路由
     history.listen(route => {
       this.apps.forEach(app => {
         app._route = route
@@ -195,7 +204,7 @@ export default class VueRouter {
   push (location: RawLocation, onComplete?: Function, onAbort?: Function) {
     // $flow-disable-line
     // 任务栈的推入
-    debugger
+
     if (!onComplete && !onAbort && typeof Promise !== 'undefined') {
       return new Promise((resolve, reject) => {
         this.history.push(location, resolve, reject)
@@ -207,7 +216,7 @@ export default class VueRouter {
 
   // 路由重定向
   replace (location: RawLocation, onComplete?: Function, onAbort?: Function) {
-    debugger
+
 
     // $flow-disable-line
     if (!onComplete && !onAbort && typeof Promise !== 'undefined') {
