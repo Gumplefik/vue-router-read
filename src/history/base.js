@@ -170,6 +170,7 @@ export class History {
       }
       onAbort && onAbort(err)
     }
+    // matched就是匹配的嵌套路由，即从父级到子级按顺序的一个路由数组，数组的末尾就是当前路由的路由配置
     const lastRouteIndex = route.matched.length - 1
     const lastCurrentIndex = current.matched.length - 1
     // 路由一样的时候
@@ -205,7 +206,7 @@ export class History {
       // 当前激活组件内的钩子函数
       activated.map(m => m.beforeEnter),
       // async components
-      // 异步组件的调用函数
+      // 异步组件的调用函数，解析异步组件
       resolveAsyncComponents(activated)
     )
 
@@ -330,7 +331,7 @@ function resolveQueue (
   let i
   // 获得两个路由中路由多的那一个，这种情况应该是考虑到了返回的情况
   const max = Math.max(current.length, next.length)
-  // 匹配出路由相等的索引
+  // 匹配出路由相等的索引，意思是有父级路由一致，子级不一样的情况，这样只需要从不一样的层级开始更新就可以了
   for (i = 0; i < max; i++) {
     if (current[i] !== next[i]) {
       break

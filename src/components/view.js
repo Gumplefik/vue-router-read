@@ -52,7 +52,7 @@ export default {
     // render previous view if the tree is inactive and kept-alive
     // 有缓存但是未激活，从缓存区中拿到原来的实例进行渲染
     if (inactive) {
-      const cachedData = cache[name]
+        const cachedData = cache[name]
       // 拿出缓存
       const cachedComponent = cachedData && cachedData.component
       if (cachedComponent) {
